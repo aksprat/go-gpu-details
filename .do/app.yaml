@@ -1,0 +1,7 @@
+name: go-gpu-details
+static_sites:
+- name: go-gpu-details
+  source_dir: /
+  index_document: index.html
+  error_document: index.html
+  catchall_document: index.html
