@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigitalOcean GPU Infrastructure Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+  :root{--do-blue:#0069ff;--do-dark:#0d1520;--do-mid:#162030;--do-card:#1b2a3d;--do-border:#253548;--do-text:#d8e8f5;--do-muted:#6e90b0;--do-accent:#00cfff;--nv:#76b900;--amd:#ed1c24;--up:#f5a623;--ga:#21d07a;--cb:#00cfff;--od:#21d07a;--so:#ff5c5c;--pv:#a259ff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--do-dark);color:var(--do-text);font-size:13px;line-height:1.5;min-height:100vh;}
+  /* HEADER */
+  .ph{background:linear-gradient(135deg,#0d1520 0%,#0d2040 100%);border-bottom:1px solid var(--do-border);padding:20px 28px 0;}
+  .ph-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+  .ph-top h1{font-size:21px;font-weight:700;color:#fff;letter-spacing:-.3px;}
+  .ph-top p{font-size:11.5px;color:var(--do-muted);margin-top:3px;}
+  .hbadges{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px;}
+  .hb{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+  .hb-b{background:var(--do-blue);color:#fff;}
+  .hb-c{background:var(--do-accent);color:#0d1520;}
+  .hb-g{background:rgba(33,208,122,.2);color:var(--ga);border:1px solid rgba(33,208,122,.4);}
+  /* TABS */
+  .tab-bar{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;}
+  .tab-bar::-webkit-scrollbar{display:none;}
+  .tab-btn{flex-shrink:0;height:46px;padding:0 16px;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--do-muted);font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color .15s,border-color .15s;white-space:nowrap;}
+  .tab-btn:hover{color:var(--do-text);}
+  .tab-btn.active{color:#fff;border-bottom-color:var(--do-blue);}
+  /* CONTENT */
+  .tc{display:none;padding:26px 28px 48px;}
+  .tc.active{display:block;}
+  /* LEGEND */
+  .legend{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:18px;font-size:11px;}
+  .legend-item{display:flex;align-items:center;gap:5px;}
+  /* BADGES */
+  .bp{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap;}
+  .b-ga{background:rgba(33,208,122,.15);color:var(--ga);border:1px solid rgba(33,208,122,.3);}
+  .b-ct{background:rgba(0,207,255,.12);color:var(--cb);border:1px solid rgba(0,207,255,.3);}
+  .b-od{background:rgba(33,208,122,.12);color:var(--od);border:1px solid rgba(33,208,122,.3);}
+  .b-so{background:rgba(255,92,92,.12);color:var(--so);border:1px solid rgba(255,92,92,.3);}
+  .b-up{background:rgba(245,166,35,.14);color:var(--up);border:1px solid rgba(245,166,35,.3);}
+  .b-pv{background:rgba(162,89,255,.13);color:var(--pv);border:1px solid rgba(162,89,255,.3);}
+  .b-td{background:rgba(110,144,176,.1);color:var(--do-muted);border:1px solid rgba(110,144,176,.25);}
+  /* REGION */
+  .rt{display:inline-block;background:rgba(0,105,255,.13);color:#80b4ff;border:1px solid rgba(0,105,255,.25);border-radius:4px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;margin:1px 2px 1px 0;}
+  .rt.up{background:rgba(245,166,35,.1);color:var(--up);border-color:rgba(245,166,35,.25);}
+  /* TABLES */
+  .tw{overflow-x:auto;border-radius:8px;border:1px solid var(--do-border);margin-bottom:14px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:780px;}
+  thead{background:var(--do-mid);}
+  thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--do-muted);padding:10px 13px;text-align:left;border-bottom:1px solid var(--do-border);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--do-border);transition:background .12s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:rgba(0,105,255,.05);}
+  tbody tr.ur{background:rgba(245,166,35,.03);}
+  tbody tr.ur:hover{background:rgba(245,166,35,.07);}
+  td{padding:9px 13px;vertical-align:middle;color:var(--do-text);}
+  td.mono{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9fc8e8;}
+  /* GPU NAMES */
+  .gn{font-weight:700;white-space:nowrap;}
+  .gn.nv{color:var(--nv);}
+  .gn.amd{color:var(--amd);}
+  .gn.up{color:var(--up);}
+  /* MISC */
+  .dim{color:var(--do-muted);font-size:11px;}
+  /* INFO BOXES */
+  .ib{background:var(--do-card);border:1px solid var(--do-border);border-left:3px solid var(--do-blue);border-radius:6px;padding:12px 15px;margin-bottom:13px;font-size:12px;line-height:1.7;}
+  .ib strong{color:#fff;}
+  .wb{border-left-color:var(--up);background:rgba(245,166,35,.04);}
+  /* PERF GRID */
+  .pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:11px;margin-bottom:18px;}
+  .pc{background:var(--do-card);border:1px solid var(--do-border);border-radius:8px;padding:13px 15px;}
+  .pc .lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--do-muted);margin-bottom:5px;}
+  .pc .val{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:var(--do-accent);}
+  .pc .sub{font-size:10.5px;color:var(--do-muted);margin-top:2px;}
+  /* PRICING CARDS */
+  .prg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px;margin-bottom:18px;}
+  .prc{background:var(--do-card);border:1px solid var(--do-border);border-radius:10px;padding:15px 17px;position:relative;overflow:hidden;}
+  .prc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .prc.nvc::before{background:var(--nv);}
+  .prc.amdc::before{background:var(--amd);}
+  .prc.upc::before{background:var(--up);}
+  .prc .cgpu{font-weight:700;font-size:14px;margin-bottom:2px;}
+  .prc .cgpu.nv{color:var(--nv);}
+  .prc .cgpu.amd{color:var(--amd);}
+  .prc .cgpu.up{color:var(--up);}
+  .prc .ccfg{font-size:11px;color:var(--do-muted);margin-bottom:13px;}
+  .prc .pr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+  .prc .pl{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--do-muted);}
+  .prc .pv{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;}
+  .prc .pv.g{color:var(--ga);}
+  .prc .pv.b{color:#80b4ff;}
+  .prc .pv.c{color:var(--cb);}
+  .prc .pv.m{color:var(--do-muted);font-size:12px;font-style:italic;}
+  .prc hr{border:none;border-top:1px solid var(--do-border);margin:9px 0;}
+  .prc .ar{display:flex;justify-content:space-between;align-items:center;margin-top:9px;}
+  /* SECTION TITLE */
+  .st{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--do-accent);margin:22px 0 11px;display:flex;align-items:center;gap:7px;}
+  .st::before{content:'';display:inline-block;width:6px;height:6px;background:var(--do-accent);border-radius:50%;}
+  .st:first-child{margin-top:0;}
+  /* QUICK REF */
+  .qrg{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  @media(max-width:680px){.qrg{grid-template-columns:1fr;}}
+  /* FOOTNOTE */
+  .fn{font-size:10.5px;color:var(--do-muted);border-top:1px solid var(--do-border);padding-top:11px;margin-top:3px;}
+  .fn a{color:#5599dd;text-decoration:none;}
+  .fn a:hover{text-decoration:underline;}
+  /* PRICE TABLE */
+  td.pm{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--ga);}
+  td.ps{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#80b4ff;}
+  td.pc2{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cb);}
+  td.psl{font-size:11px;color:var(--do-muted);font-style:italic;}
+</style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-top">
+    <div>
+      <h1>🖥 DigitalOcean GPU Infrastructure Reference</h1>
+      <p>Internal one-stop shop — SKUs, specs, pricing, networking, regions, data centers, inference products, and roadmap.</p>
+    </div>
+    <div class="hbadges">
+      <span class="hb hb-b">Internal Reference</span>
+      <span class="hb hb-c">Updated May 2026</span>
+      <span class="hb hb-g">✓ Pricing from DO Docs</span>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('skus',this)">📋 SKU &amp; Specs</button>
+    <button class="tab-btn" onclick="switchTab('pricing',this)">💰 Pricing</button>
+    <button class="tab-btn" onclick="switchTab('networking',this)">🔗 Networking</button>
+    <button class="tab-btn" onclick="switchTab('regions',this)">🌎 Regions</button>
+    <button class="tab-btn" onclick="switchTab('datacenters',this)">🏢 Data Centers</button>
+    <button class="tab-btn" onclick="switchTab('inference',this)">⚡ Inference Products</button>
+    <button class="tab-btn" onclick="switchTab('roadmap',this)">🚀 Roadmap</button>
+    <button class="tab-btn" onclick="switchTab('quickref',this)">🔖 Quick Reference</button>
+  </div>
+</div>
+
+<!-- ═══ TAB 1 — SKU & SPECS ═══ -->
+<div id="tab-skus" class="tc active">
+  <div class="legend">
+    <div class="legend-item"><span class="bp b-od">On-Demand</span> Pay per second</div>
+    <div class="legend-item"><span class="bp b-ct">Contract</span> 12-month reserved</div>
+    <div class="legend-item"><span class="bp b-so">Sold Out</span> No capacity</div>
+    <div class="legend-item"><span class="bp b-up">Coming Soon</span> Roadmap</div>
+    <div class="legend-item"><span class="bp b-td">TBD</span> Confirm with engineering</div>
+  </div>
+
+  <div class="st">NVIDIA GPU Droplets</div>
+  <div class="tw"><table>
+    <thead><tr><th>GPU Model</th><th>Config</th><th>VRAM</th><th>vCPU</th><th>RAM</th><th>Boot Disk</th><th>Scratch Disk</th><th>Size Slug</th><th>Virtualization</th><th>Mode</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td class="gn nv">RTX 4000 Ada</td><td>1×</td><td>20 GB</td><td>8</td><td>32 GB</td><td>500 GiB NVMe</td><td class="dim">—</td><td class="mono">gpu-rtx4000ada-20gb</td><td>Passthrough</td><td><span class="bp b-od">On-Demand</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn nv">L40S</td><td>1×</td><td>48 GB</td><td class="dim">—</td><td class="dim">—</td><td>500 GiB NVMe</td><td class="dim">—</td><td class="mono">gpu-l40s-48gb</td><td>Passthrough</td><td><span class="bp b-od">On-Demand</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn nv">RTX 6000 Ada</td><td>1×</td><td>48 GB</td><td class="dim">—</td><td class="dim">—</td><td>500 GiB NVMe</td><td class="dim">—</td><td class="mono dim">—</td><td>Passthrough</td><td><span class="bp b-od">On-Demand</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn nv">H100 SXM5</td><td>1×</td><td>80 GB</td><td class="dim">—</td><td class="dim">—</td><td>720 GiB NVMe</td><td>5 TiB NVMe</td><td class="mono">gpu-h100x1-160gb</td><td>Passthrough + FabricMgr svc VM</td><td><span class="bp b-od">On-Demand</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn nv">H100 SXM5</td><td>8×</td><td>640 GB</td><td>160</td><td>1,920 GB</td><td>2 TiB NVMe</td><td>40 TiB NVMe</td><td class="mono">gpu-h100x8-640gb<br>gpu-h100x8-640gb-contracted</td><td>Passthrough + 4× NVSwitch + FabricMgr</td><td><span class="bp b-od">On-Demand</span> <span class="bp b-ct">Contract</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn nv">H200 SXM5</td><td>1×</td><td>141 GB</td><td>24</td><td>240 GB</td><td>720 GiB NVMe</td><td>5 TiB NVMe</td><td class="mono">gpu-h200x1-141gb</td><td>Passthrough + FabricMgr svc VM</td><td><span class="bp b-od">On-Demand</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn nv">H200 SXM5</td><td>8×</td><td>1,128 GB (1.1 TB)</td><td>192</td><td>1,920 GB</td><td>2 TiB NVMe</td><td>40 TiB NVMe</td><td class="mono">gpu-h200x8-1128gb<br>gpu-h200x8-1128gb-contracted</td><td>Passthrough + 4× NVSwitch + FabricMgr</td><td><span class="bp b-so">Sold Out</span> <span class="bp b-ct">Contract</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr class="ur"><td class="gn up">B300 (Blackwell)</td><td>1×</td><td>288 GB HBM3e</td><td class="bp b-td" style="display:inline-block">TBD</td><td class="bp b-td" style="display:inline-block">TBD</td><td class="dim">—</td><td class="dim">—</td><td class="mono">gpu-b300x1-…</td><td>Passthrough + DOCA + CX-8 NICs</td><td><span class="bp b-ct">Contract</span></td><td><span class="bp b-ga">GA</span> <span class="dim">(single ~3/31/26)</span></td></tr>
+      <tr class="ur"><td class="gn up">B300 (Blackwell)</td><td>8×</td><td>2,304 GB (2.25 TB)</td><td class="bp b-td" style="display:inline-block">TBD</td><td class="bp b-td" style="display:inline-block">TBD</td><td class="dim">—</td><td class="dim">—</td><td class="mono">gpu-b300x8-2304gb-contracted</td><td>Passthrough + 2× NVSwitch + DOCA + CX-8</td><td><span class="bp b-ct">Contract</span></td><td><span class="bp b-up">Multi-node ~mid-May 2026</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="st">AMD GPU Droplets</div>
+  <div class="tw"><table>
+    <thead><tr><th>GPU Model</th><th>Config</th><th>VRAM</th><th>vCPU</th><th>RAM</th><th>Boot Disk</th><th>Scratch Disk</th><th>Size Slug</th><th>Virtualization</th><th>Mode</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td class="gn amd">MI300X</td><td>1×</td><td>192 GB HBM3</td><td>20</td><td>240 GB</td><td class="dim">—</td><td class="dim">—</td><td class="mono dim">—</td><td>SR-IOV (VF) — intentional</td><td><span class="bp b-od">On-Demand</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn amd">MI300X</td><td>8×</td><td>1,536 GB</td><td>160</td><td>1,280 GB</td><td>2 TiB NVMe</td><td>40 TiB NVMe</td><td class="mono dim">—</td><td>SR-IOV (VF) + Infinity Fabric</td><td><span class="bp b-od">On-Demand</span> <span class="bp b-ct">Contract</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn amd">MI325X</td><td>8×</td><td>2,048 GB (2 TB)</td><td>160</td><td>1,280 GB</td><td>2 TiB NVMe</td><td>40 TiB NVMe</td><td class="mono dim">—</td><td>SR-IOV (VF) + Infinity Fabric</td><td><span class="bp b-ct">Contract Only</span></td><td><span class="bp b-ga">GA</span></td></tr>
+      <tr><td class="gn amd">MI350X</td><td>8×</td><td>2,304 GB (2.25 TB)</td><td class="bp b-td" style="display:inline-block">TBD</td><td class="bp b-td" style="display:inline-block">TBD</td><td>2 TiB NVMe</td><td>40 TiB NVMe</td><td class="mono">gpu-mi350x8-2304gb</td><td>SR-IOV (VF) + Infinity Fabric (CDNA 4)</td><td><span class="bp b-ct">Contract Only</span></td><td><span class="bp b-ga">GA</span> <span class="dim">(RIC1+ATL1, Feb/Mar 2026)</span></td></tr>
+      <tr class="ur"><td class="gn up">MI355X ⚡</td><td>8×</td><td>~2,304 GB (est.)</td><td class="dim">—</td><td class="dim">—</td><td class="dim">—</td><td class="dim">—</td><td class="mono">gpu-mi355x8-2304gb (est.)</td><td>SR-IOV (VF) — expected same as MI350X; liquid-cooled</td><td><span class="bp b-up">Coming Soon</span></td><td><span class="bp b-up">Q3 2026 est.</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="fn">⚡ Upcoming items — confirm with engineering before sharing externally. Sources: <a href="https://docs.digitalocean.com/products/droplets/details/features/#gpu-droplets">Official Docs</a> · <a href="https://digitalocean.slack.com/archives/C0ABXBM8J57/p1775767007357079">#prm-gpu-do-anysphere</a> · <a href="https://markets.financialcontent.com/stocks/article/bizwire-2026-2-19-digitalocean-elevates-its-agentic-inference-cloud-with-gpu-droplets-powered-by-amd-instinct-mi350x-gpus">MI350X announcement</a></div>
+</div>
+
+<!-- ═══ TAB 2 — PRICING ═══ -->
+<div id="tab-pricing" class="tc">
+  <div class="ib"><strong>Billing:</strong> Per-second with 5-minute minimum. Powered-off Droplets still charge — destroy to stop billing. Monthly estimates = hourly × 720 (30 days × 24 hrs). Contract pricing requires 12-month commitment via sales. <strong>Source:</strong> <a href="https://docs.digitalocean.com/products/droplets/details/pricing/" style="color:#5599dd">DO Droplet Pricing Docs</a> · <a href="https://www.digitalocean.com/pricing/gpu-droplets" style="color:#5599dd">GPU Pricing Page</a></div>
+
+  <div class="st">NVIDIA — On-Demand Pricing</div>
+  <div class="prg">
+    <div class="prc nvc"><div class="cgpu nv">RTX 4000 Ada</div><div class="ccfg">1× GPU · 20 GB VRAM · 8 vCPU · 32 GB RAM</div><div class="pr"><span class="pl">Hourly</span><span class="pv g">$0.76</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$547</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$0.76</span></div><hr><div class="ar"><span class="bp b-od">On-Demand</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc nvc"><div class="cgpu nv">L40S</div><div class="ccfg">1× GPU · 48 GB VRAM</div><div class="pr"><span class="pl">Hourly</span><span class="pv g">$1.57</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$1,130</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$1.57</span></div><hr><div class="ar"><span class="bp b-od">On-Demand</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc nvc"><div class="cgpu nv">RTX 6000 Ada</div><div class="ccfg">1× GPU · 48 GB VRAM</div><div class="pr"><span class="pl">Hourly</span><span class="pv g">$1.57</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$1,130</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$1.57</span></div><hr><div class="ar"><span class="bp b-od">On-Demand</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc nvc"><div class="cgpu nv">H100 SXM5 (1×)</div><div class="ccfg">1× GPU · 80 GB VRAM · 720 GiB boot + 5 TiB scratch</div><div class="pr"><span class="pl">Hourly</span><span class="pv g">$3.39</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$2,441</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$3.39</span></div><hr><div class="ar"><span class="bp b-od">On-Demand</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc nvc"><div class="cgpu nv">H100 SXM5 (8×)</div><div class="ccfg">8× GPUs · 640 GB VRAM · 160 vCPU · 1,920 GB RAM · 2 TiB + 40 TiB</div><div class="pr"><span class="pl">Hourly (node)</span><span class="pv g">$23.92</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$17,222</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$2.99</span></div><hr><div class="ar"><span class="bp b-so">Mostly Sold Out</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc nvc"><div class="cgpu nv">H200 SXM5 (1×)</div><div class="ccfg">1× GPU · 141 GB VRAM · 24 vCPU · 240 GB RAM</div><div class="pr"><span class="pl">Hourly</span><span class="pv g">$3.44</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$2,477</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$3.44</span></div><hr><div class="ar"><span class="bp b-od">On-Demand</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc nvc"><div class="cgpu nv">H200 SXM5 (8×)</div><div class="ccfg">8× GPUs · 1,128 GB VRAM · 192 vCPU · 1,920 GB RAM · 2 TiB + 40 TiB</div><div class="pr"><span class="pl">Hourly (node)</span><span class="pv g">$27.52</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$19,814</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$3.44</span></div><hr><div class="ar"><span class="bp b-so">Sold Out</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc upc"><div class="cgpu up">B300 (Blackwell)</div><div class="ccfg">1× or 8× · 288 GB / 2,304 GB VRAM · Contract only</div><div class="pr"><span class="pl">Hourly</span><span class="pv m">Contact Sales</span></div><div class="pr"><span class="pl">Monthly</span><span class="pv m">Contact Sales</span></div><div class="pr"><span class="pl">Market 12-mo range</span><span class="pv c">~$5.65+/GPU/hr</span></div><hr><div class="ar"><span class="bp b-ct">Contract</span><span class="bp b-up">GA ~2026</span></div></div>
+  </div>
+
+  <div class="st">AMD — Pricing</div>
+  <div class="prg">
+    <div class="prc amdc"><div class="cgpu amd">MI300X (1×)</div><div class="ccfg">1× GPU · 192 GB VRAM · 20 vCPU · 240 GB RAM</div><div class="pr"><span class="pl">Hourly</span><span class="pv g">$1.99</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$1,433</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$1.99</span></div><hr><div class="ar"><span class="bp b-od">On-Demand</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc amdc"><div class="cgpu amd">MI300X (8×)</div><div class="ccfg">8× GPUs · 1,536 GB VRAM · 160 vCPU · 1,280 GB RAM · 2 TiB + 40 TiB</div><div class="pr"><span class="pl">Hourly (node)</span><span class="pv g">$15.92</span></div><div class="pr"><span class="pl">Monthly (~720 hrs)</span><span class="pv b">~$11,462</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv g">$1.99</span></div><hr><div class="ar"><span class="bp b-od">On-Demand</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc amdc"><div class="cgpu amd">MI325X (8×)</div><div class="ccfg">8× GPUs · 2,048 GB VRAM · 160 vCPU · 1,280 GB RAM · 2 TiB + 40 TiB</div><div class="pr"><span class="pl">Hourly (node)</span><span class="pv m">Contact Sales</span></div><div class="pr"><span class="pl">Monthly</span><span class="pv m">Contact Sales</span></div><div class="pr"><span class="pl">Contract 12-mo/GPU</span><span class="pv c">$1.69/GPU/hr → ~$9,734/mo</span></div><hr><div class="ar"><span class="bp b-ct">Contract Only</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc amdc"><div class="cgpu amd">MI350X (8×)</div><div class="ccfg">8× GPUs · 2,304 GB VRAM · 2 TiB + 40 TiB NVMe</div><div class="pr"><span class="pl">Hourly</span><span class="pv m">Contact Sales</span></div><div class="pr"><span class="pl">Monthly</span><span class="pv m">Contact Sales</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv m">Contact Sales</span></div><hr><div class="ar"><span class="bp b-ct">Contract Only</span><span class="bp b-ga">GA</span></div></div>
+    <div class="prc upc"><div class="cgpu up">MI355X (8×) ⚡</div><div class="ccfg">8× GPUs · ~2,304 GB VRAM · Liquid-cooled · Coming soon</div><div class="pr"><span class="pl">Hourly</span><span class="pv m">Not yet available</span></div><div class="pr"><span class="pl">Monthly</span><span class="pv m">Not yet available</span></div><div class="pr"><span class="pl">Per GPU/hr</span><span class="pv m">TBD</span></div><hr><div class="ar"><span class="bp b-up">Coming Soon</span><span class="bp b-td">TBD</span></div></div>
+  </div>
+
+  <div class="st">12-Month Contract Pricing Summary</div>
+  <div class="tw"><table>
+    <thead><tr><th>GPU</th><th>Config</th><th>Per GPU/hr (12-mo contract)</th><th>Node/hr (12-mo)</th><th>Monthly/node (est.)</th><th>Savings vs On-Demand</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="gn nv">H100 SXM5</td><td>8×</td><td class="pc2">$1.99/GPU/hr</td><td class="pc2">$15.92/hr</td><td class="ps">~$11,462/mo</td><td style="color:var(--ga)">~33% off</td><td class="dim">vs $23.92/hr on-demand</td></tr>
+      <tr><td class="gn amd">MI300X</td><td>8×</td><td class="pc2">$1.49/GPU/hr</td><td class="pc2">$11.92/hr</td><td class="ps">~$8,582/mo</td><td style="color:var(--ga)">~25% off</td><td class="dim">vs $15.92/hr on-demand</td></tr>
+      <tr><td class="gn amd">MI325X</td><td>8×</td><td class="pc2">$1.69/GPU/hr</td><td class="pc2">$13.52/hr</td><td class="ps">~$9,734/mo</td><td class="dim">—</td><td class="dim">Contract-only SKU; no OD baseline</td></tr>
+      <tr class="ur"><td class="gn nv">H200 SXM5</td><td>8×</td><td class="psl">Contact Sales</td><td class="psl">Contact Sales</td><td class="psl">—</td><td class="dim">—</td><td class="dim">Contract required; confirm with sales</td></tr>
+      <tr class="ur"><td class="gn up">B300</td><td>8×</td><td class="psl">Contact Sales</td><td class="psl">Contact Sales</td><td class="psl">—</td><td class="dim">—</td><td class="dim">Market range from $5.65/GPU/hr (12-mo); DO pricing TBD</td></tr>
+      <tr class="ur"><td class="gn amd">MI350X</td><td>8×</td><td class="psl">Contact Sales</td><td class="psl">Contact Sales</td><td class="psl">—</td><td class="dim">—</td><td class="dim">Contract-only; confirm with sales</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="st">Inference Products Pricing</div>
+  <div class="tw"><table>
+    <thead><tr><th>Product</th><th>Pricing Model</th><th>Rate</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Serverless Inference</strong></td><td>Per-token (per model)</td><td class="pc2">See Model Catalog — varies by model</td><td>No GPU provisioning cost; billed per token only when running inference</td></tr>
+      <tr><td><strong>Dedicated Inference</strong></td><td>Per GPU-hour</td><td class="pc2">Same rates as GPU Droplet hourly for selected GPU</td><td>B300, H100, H200, MI300X, MI325X, etc. — mirrors GPU Droplet pricing</td></tr>
+      <tr><td><strong>Inference Hub</strong></td><td>No extra charge</td><td class="pm">$0.00</td><td>Platform access is free; pay only for Serverless or Dedicated usage</td></tr>
+      <tr><td><strong>BYOM Model Storage</strong></td><td>Flat monthly</td><td class="ps">$5.00/mo</td><td>Model weights stored in service-managed Spaces location</td></tr>
+    </tbody>
+  </table></div>
+  <div class="fn">Pricing sourced from: <a href="https://docs.digitalocean.com/products/droplets/details/pricing/">DO Droplet Pricing Docs (validated Apr 7, 2026)</a> · <a href="https://www.digitalocean.com/pricing/gpu-droplets">GPU Droplets Pricing Page</a> · <a href="https://docs.digitalocean.com/products/inference/details/pricing/">Inference Pricing Docs (validated May 1, 2026)</a> · <a href="https://www.digitalocean.com/resources/articles/best-cloud-gpu-platforms">DO Blog (contract rates)</a>. All prices USD. Contract pricing via 12-month commitment through sales.</div>
+</div>
+
+<!-- ═══ TAB 3 — NETWORKING ═══ -->
+<div id="tab-networking" class="tc">
+  <div class="pg">
+    <div class="pc"><div class="lbl">Intra-Node NVIDIA NVLink</div><div class="val">900 GBps</div><div class="sub">450 GBps/dir; 4× NVSwitches (H100/H200), 2× (B300)</div></div>
+    <div class="pc"><div class="lbl">Inter-Node RoCEv2 Fabric</div><div class="val">3.2 Tbps</div><div class="sub">8 × 400 Gbps — 1 dedicated NIC per GPU</div></div>
+    <div class="pc"><div class="lbl">ib_write_bw Observed</div><div class="val">~390 Gbps</div><div class="sub">Across all 400G GPU fabrics (AMD &amp; NVIDIA)</div></div>
+    <div class="pc"><div class="lbl">NCCL Test — B300 8×</div><div class="val">~838 GB/s</div><div class="sub">ric1node350, Apr 9, 2026</div></div>
+    <div class="pc"><div class="lbl">NCCL Test — H200 8×</div><div class="val">~482 GB/s</div><div class="sub">nyc2node5101, Apr 9, 2026</div></div>
+    <div class="pc"><div class="lbl">Host Public (N/S)</div><div class="val">10 Gbps</div><div class="sub">All GPU Droplets</div></div>
+    <div class="pc"><div class="lbl">Host Private (E/W)</div><div class="val">25 Gbps</div><div class="sub">All GPU Droplets</div></div>
+    <div class="pc"><div class="lbl">H200 Host Ethernet</div><div class="val">4×100G</div><div class="sub">400 Gbps total host-side</div></div>
+  </div>
+
+  <div class="st">Per-SKU Networking Details</div>
+  <div class="tw"><table>
+    <thead><tr><th>GPU SKU</th><th>Intra-node Interconnect</th><th>Intra-node BW</th><th>Switch/Fabric</th><th>Inter-node</th><th>GPU Fabric BW</th><th>Host Ethernet</th><th>Public</th><th>Private</th><th>NIC Model</th><th>NIC–GPU Pairing</th></tr></thead>
+    <tbody>
+      <tr><td class="gn nv">H100 SXM5 (8×)</td><td>NVLink</td><td>900 GBps</td><td>4× NVSwitches</td><td>RoCEv2</td><td>3.2 Tbps (8×400G)</td><td>4×100 Gbps</td><td>10 Gbps</td><td>25 Gbps</td><td>CX-7 (1/GPU)</td><td>1:1 GPU↔NIC rail</td></tr>
+      <tr><td class="gn nv">H200 SXM5 (8×)</td><td>NVLink</td><td>900 GBps</td><td>4× NVSwitches</td><td>RoCEv2</td><td>3.2 Tbps (8×400G)</td><td>4×100 Gbps</td><td>10 Gbps</td><td>25 Gbps</td><td>CX-7 (1/GPU)</td><td>1:1 GPU↔NIC rail</td></tr>
+      <tr class="ur"><td class="gn up">B300 (8×)</td><td>NVLink (NVSwitch)</td><td class="dim">TBD</td><td>2× NVSwitches</td><td>RoCEv2</td><td>est. 3.2 Tbps</td><td class="dim">TBD</td><td>10 Gbps</td><td>25 Gbps</td><td>CX-8 onboard (2 VF NICs/GPU)</td><td>1:1 — DOCA drivers required</td></tr>
+      <tr><td class="gn amd">MI300X / MI325X (8×)</td><td>Infinity Fabric (on-die)</td><td>896 GB/s (bidirectional)</td><td>N/A — on-die</td><td>RoCEv2</td><td>3.2 Tbps (8×400G)</td><td class="dim">—</td><td>10 Gbps</td><td>25 Gbps</td><td>SR-IOV VF (1/GPU)</td><td>1:1 GPU↔NIC rail (VF mode)</td></tr>
+      <tr><td class="gn amd">MI350X (8×)</td><td>Infinity Fabric (CDNA 4)</td><td class="dim">TBD</td><td>N/A — on-die</td><td>RoCEv2</td><td>est. 3.2 Tbps</td><td class="dim">—</td><td>10 Gbps</td><td>25 Gbps</td><td>SR-IOV VF (1/GPU)</td><td>1:1 GPU↔NIC rail (VF mode)</td></tr>
+      <tr class="ur"><td class="gn up">MI355X (8×)</td><td>Infinity Fabric</td><td class="dim">TBD</td><td>N/A — on-die</td><td>RoCEv2</td><td class="dim">TBD</td><td class="dim">—</td><td class="dim">—</td><td class="dim">—</td><td class="dim">Same as MI350X (expected)</td><td class="dim">—</td></tr>
+      <tr><td class="gn nv">RTX 4000 / L40S / RTX 6000 (1×)</td><td>N/A (single GPU)</td><td>N/A</td><td>None</td><td>N/A</td><td>N/A</td><td class="dim">—</td><td>10 Gbps</td><td>25 Gbps</td><td class="dim">—</td><td>N/A</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="ib"><strong>NIC–GPU Rail Architecture:</strong> Each GPU is paired 1:1 with a dedicated NIC. For inter-node communication, GPU 4 first sends data to GPU 5 on the same node via NVSwitch (or Infinity Fabric for AMD), then GPU 5's paired NIC sends it over the RoCE fabric to the remote GPU 5. No redundancy within a rail. "Contracted" slugs additionally pass the GPU fabric NICs through to the Droplet.</div>
+  <div class="ib wb"><strong>AMD SR-IOV Note:</strong> All AMD GPUs expose as Virtual Functions (VF) via SR-IOV — <strong>intentional</strong>. Does NOT affect RoCE performance. However, <code>hipIpcOpenMemHandle</code> (cross-process GPU memory on same node) may fail in VF mode. AMD ticket open. No customer-facing workaround confirmed yet.</div>
+  <div class="ib"><strong>B300 Special Requirement:</strong> B300 requires DOCA drivers for Mellanox CX-8 NICs. Must use <code>gpu-h100x8-base</code> image (poorly named but supports all hardware including B300). The <code>gpu-h100x1-base</code> image lacks DOCA drivers and will not work with B300.</div>
+  <div class="fn">Sources: <a href="https://digitalocean.slack.com/archives/C05TZGHTXAB/p1756737414114409">#gpu-droplet Sep 2025</a> · <a href="https://digitalocean.slack.com/archives/C01DJ3FUTEE/p1756134418173209">#solutions-team-public Aug 2025</a> · <a href="https://digitalocean.slack.com/archives/C05TZGHTXAB/p1777303434968659">#gpu-droplet Apr 2026 (SR-IOV)</a> · <a href="https://digitalocean.slack.com/archives/C0ABXBM8J57/p1775767007357079">#prm-gpu-do-anysphere Apr 2026 (B300/DOCA)</a></div>
+</div>
+
+<!-- ═══ TAB 4 — REGIONS ═══ -->
+<div id="tab-regions" class="tc">
+  <div class="ib wb"><strong>Capacity note:</strong> H100 and H200 are largely sold out on-demand. Capacity fluctuates — customers can sometimes grab single machines. Direct enterprise customers to sales for contracted capacity. NVIDIA GPUs currently NOT available in European regions (GDPR consideration). AMS3 (Amsterdam) mentioned on product page as a future GPU location.</div>
+  <div class="tw"><table>
+    <thead><tr><th>GPU SKU</th><th>Config</th><th>Available Regions</th><th>Mode</th><th>Max Cluster Size</th><th>SLA</th><th>Spin-up</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="gn nv">RTX 4000 Ada</td><td>1×</td><td><span class="rt">TOR1</span></td><td><span class="bp b-od">On-Demand</span></td><td>1</td><td>99.5%/mo</td><td>&lt;1 min</td><td>TOR1 only per official docs</td></tr>
+      <tr><td class="gn nv">L40S / RTX 6000 Ada</td><td>1×</td><td><span class="rt">TOR1</span> <span class="dim">+ others TBD</span></td><td><span class="bp b-od">On-Demand</span></td><td>1</td><td>99.5%/mo</td><td>&lt;1 min</td><td>Confirm full region list</td></tr>
+      <tr><td class="gn nv">H100 SXM5</td><td>1× / 8×</td><td><span class="rt">NYC2</span><span class="rt">NYC3</span><span class="rt">TOR1</span><span class="rt">ATL1</span></td><td><span class="bp b-so">Sold Out</span> / <span class="bp b-ct">Contract</span></td><td>512 GPUs / 64 nodes</td><td>99.5%/mo</td><td>&lt;1 min</td><td>On-demand capacity fluctuates; spot via grafana capacity monitor</td></tr>
+      <tr><td class="gn nv">H200 SXM5</td><td>1× / 8×</td><td><span class="rt">NYC2</span><span class="rt">ATL1</span></td><td><span class="bp b-so">Sold Out</span> / <span class="bp b-ct">Contract</span></td><td>512 GPUs / 64 nodes</td><td>99.5%/mo</td><td>&lt;1 min</td><td>Very limited on-demand; mostly contracted</td></tr>
+      <tr class="ur"><td class="gn up">B300</td><td>1× / 8×</td><td><span class="rt up">RIC1</span></td><td><span class="bp b-ct">Contract</span> <span class="bp b-so">Sold Out</span></td><td class="dim">TBD</td><td>99.5%/mo</td><td class="dim">TBD</td><td>Single-node GA ~3/31/26; multi-node ~mid-May 2026; RIC1 only</td></tr>
+      <tr><td class="gn amd">MI300X</td><td>1× / 8×</td><td><span class="rt">NYC1</span><span class="rt">TOR1</span><span class="rt">ATL1</span></td><td><span class="bp b-od">On-Demand</span> / <span class="bp b-ct">Contract</span></td><td>512 GPUs / 64 nodes</td><td>99.5%/mo</td><td>&lt;1 min</td><td>Dedicated Inference regions: NYC1, TOR1, ATL</td></tr>
+      <tr><td class="gn amd">MI325X</td><td>8×</td><td><span class="rt">ATL1</span><span class="rt">SFO2</span><span class="rt">SFO3</span><span class="rt">NYC1</span></td><td><span class="bp b-ct">Contract Only</span></td><td>512 GPUs / 64 nodes</td><td>99.5%/mo</td><td class="dim">—</td><td>Active firmware upgrade program underway</td></tr>
+      <tr><td class="gn amd">MI350X</td><td>8×</td><td><span class="rt">RIC1</span><span class="rt">ATL1</span></td><td><span class="bp b-ct">Contract Only</span></td><td class="dim">TBD</td><td>99.5%/mo</td><td class="dim">—</td><td>ATL1 (Feb 2026) + RIC1 (Mar 12, 2026). On-demand option TBD.</td></tr>
+      <tr class="ur"><td class="gn up">MI355X ⚡</td><td>8×</td><td><span class="rt up">MEM1</span></td><td><span class="bp b-up">Coming Soon</span></td><td class="dim">TBD</td><td class="dim">—</td><td class="dim">—</td><td>MEM1 cluster referenced Apr 2026. Liquid-cooled racks. Q3 2026 est.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="fn">Sources: <a href="https://docs.digitalocean.com/products/droplets/details/availability/">Region Availability Docs</a> · <a href="https://digitalocean.slack.com/archives/C01DJ3FUTEE/p1775171105813259">#solutions-team-public Apr 2026</a> · <a href="https://digitalocean.slack.com/archives/C07TAQG5NQM/p1767972992736239">#gpu-program Jan 2026</a></div>
+</div>
+
+<!-- ═══ TAB 5 — DATA CENTERS ═══ -->
+<div id="tab-datacenters" class="tc">
+  <div class="tw"><table>
+    <thead><tr><th>Region</th><th>Location</th><th>Launched</th><th>GPU SKUs</th><th>Purpose / Design</th><th>Key Infrastructure</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="mono" style="color:var(--do-accent)">ATL1</td><td>Atlanta-Douglasville, GA</td><td>June 2025</td><td><span class="gn nv" style="font-size:11px">H200</span> <span class="gn amd" style="font-size:11px">MI325X, MI300X, MI350X</span></td><td>Largest DO DC at launch; AI/ML optimized; AMD Developer Cloud partnership</td><td>VAST storage; multi-room colo; full DO stack (DOKS, DBs, App Platform, LBaaS)</td><td>80% of CPTO teams involved in buildout. Inference available (NYC1, TOR1, ATL).</td></tr>
+      <tr><td class="mono" style="color:var(--do-accent)">RIC1</td><td>Richmond, VA</td><td>Mar 12, 2026</td><td><span class="gn up" style="font-size:11px">B300</span> <span class="gn amd" style="font-size:11px">MI350X</span></td><td>Purpose-built next-gen GPU; high-density GPU pod design</td><td>High-density B300 + MI350X pods; VAST storage; full network stack; DOKS-ready; Jammy kernel for B300</td><td>B300 private preview completed in 6 weeks (vs 8-week "speed of light" target). Single-node GA ~3/31/26.</td></tr>
+      <tr><td class="mono" style="color:var(--do-accent)">NYC2</td><td>New York, NY</td><td>Legacy</td><td><span class="gn nv" style="font-size:11px">H100, H200</span></td><td>Legacy DC; core DO stack</td><td>H100/H200 nodes (largely sold out)</td><td>Sparse GPU capacity; H200 test nodes used by virt team</td></tr>
+      <tr><td class="mono" style="color:var(--do-accent)">TOR1</td><td>Toronto, Canada</td><td>Legacy</td><td><span class="gn nv" style="font-size:11px">H100, RTX 4000 Ada</span> <span class="gn amd" style="font-size:11px">MI300X</span></td><td>Multi-GPU region; RTX 4000 Ada <em>exclusive</em> to TOR1</td><td>Standard DO stack; Canadian data residency</td><td>RTX 4000 Ada only available in TOR1 as of Mar 2026</td></tr>
+      <tr><td class="mono" style="color:var(--do-accent)">SFO2/3</td><td>San Francisco, CA</td><td>Legacy</td><td><span class="gn amd" style="font-size:11px">MI325X</span></td><td>AMD GPU region; active firmware upgrade efforts</td><td>MI325X fleet nodes</td><td>MI325X firmware upgrades underway; SFO3 validated Jan 2026</td></tr>
+      <tr><td class="mono" style="color:var(--do-accent)">NYC1</td><td>New York, NY</td><td>Legacy</td><td><span class="gn amd" style="font-size:11px">MI300X</span></td><td>Legacy DC; MI300X + Dedicated Inference launch region</td><td>Standard DO stack</td><td>One of 3 Dedicated Inference private preview regions (NYC1, TOR1, ATL)</td></tr>
+      <tr class="ur"><td class="mono" style="color:var(--up)">MEM1 ⚡</td><td>Memphis, TN (est.)</td><td>Q3 2026 est.</td><td><span class="gn up" style="font-size:11px">MI355X</span></td><td>Dedicated MI355X cluster; liquid-cooled racks</td><td class="dim">TBD</td><td>⚡ Referenced in Apr 2026 Moonshot AI POC thread. Confirm DC name/location with engineering.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="fn">Sources: <a href="https://digitalocean.slack.com/archives/C024FPVDB/p1748959589213969">#announcements ATL1 Jun 2025</a> · <a href="https://digitalocean.slack.com/archives/C024FPVDB/p1773680938613259">#announcements RIC1 Mar 2026</a> · <a href="https://digitalocean.slack.com/archives/C05TZGHTXAB/p1777303434968659">#gpu-droplet MEM1/MI355X Apr 2026</a> · <a href="https://markets.financialcontent.com/stocks/article/bizwire-2026-2-19-digitalocean-elevates-its-agentic-inference-cloud-with-gpu-droplets-powered-by-amd-instinct-mi350x-gpus">MI350X announcement Feb 2026</a></div>
+</div>
+
+<!-- ═══ TAB 6 — INFERENCE PRODUCTS ═══ -->
+<div id="tab-inference" class="tc">
+  <div class="tw"><table>
+    <thead><tr><th>Product</th><th>Status</th><th>GPU Infra</th><th>Pricing</th><th>API / Access</th><th>Supported GPUs</th><th>Key Features</th><th>Docs</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Serverless Inference</strong></td><td><span class="bp b-ga">GA</span></td><td>Latest NVIDIA GPUs (DO-managed; runs on DI platform)</td><td>Per-token per model</td><td class="mono">inference.do-ai.run<br>/v1/chat/completions</td><td>NVIDIA (Blackwell + others, managed by DO)</td><td>No GPU provisioning; OpenAI-compatible API; Day-0 model launches; unified billing; prompt caching; streaming; security-hardened defaults</td><td><a href="https://docs.digitalocean.com/products/gradient-ai-platform/how-to/use-serverless-inference/" style="color:#5599dd">Docs</a></td></tr>
+      <tr><td><strong>Dedicated Inference</strong></td><td><span class="bp b-ga">GA</span> <span class="dim">(Apr 30, 2026)</span></td><td>Private, reserved GPU instances</td><td>Per GPU-hour (same as GPU Droplet rates)</td><td>Control Panel + API</td><td>B300, H100, H200, MI300X, MI325X, etc.</td><td>No noisy-neighbor; auto-scaling; custom concurrency &amp; sequence lengths; scale-to-zero; BYOM; LoRA adapters; speculative decoding; private &amp; isolated; 1-click from Serverless/Playground</td><td><a href="https://docs.digitalocean.com/products/inference/how-to/use-dedicated-inference/" style="color:#5599dd">Docs</a></td></tr>
+      <tr><td><strong>Inference Hub</strong></td><td><span class="bp b-pv">Public Preview</span> <span class="dim">(Mar 2026)</span></td><td>Same as above</td><td>$0 for Hub; pay per usage</td><td>DO Control Panel UI</td><td>Serverless + Dedicated</td><td>Model Catalog (search/filter); Playground; built-in code snippets; single pane of glass for both modes; model evaluation; intelligent routing (roadmap)</td><td><a href="https://docs.digitalocean.com/products/inference-hub/" style="color:#5599dd">Docs</a></td></tr>
+      <tr><td><strong>GPU Droplets</strong></td><td><span class="bp b-ga">GA</span></td><td>Raw VM with dedicated GPU(s)</td><td>Per GPU-hour</td><td>DO API, CLI, Control Panel, Terraform</td><td>All SKUs (H100, H200, B300, MI300X, MI325X, MI350X, RTX series, L40S)</td><td>Full root access; DOKS integration; VAST/NFS shared storage; multi-node up to 512 GPUs; 99.5% SLA; pre-installed CUDA/ROCm/PyTorch/TensorFlow</td><td><a href="https://docs.digitalocean.com/products/droplets/details/features/#gpu-droplets" style="color:#5599dd">Docs</a></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="st">Recent Serverless Inference Model Launches (2026)</div>
+  <div class="tw"><table>
+    <thead><tr><th>Model</th><th>Provider</th><th>API Model ID</th><th>Launch Date</th><th>Day-0?</th><th>Use Case</th></tr></thead>
+    <tbody>
+      <tr><td>GLM-5</td><td>Zhipu AI</td><td class="mono">glm-5</td><td>Mar 19, 2026</td><td><span class="bp b-ga">Day-0 (GTC)</span></td><td>Deep reasoning, long-context, agentic</td></tr>
+      <tr><td>Kimi-K2.5</td><td>Moonshot AI</td><td class="mono">kimi-k2.5</td><td>Mar 19, 2026</td><td><span class="bp b-ga">Day-0 (GTC)</span></td><td>Multi-step reasoning, multimodal</td></tr>
+      <tr><td>MiniMax-M2.5</td><td>MiniMax</td><td class="mono">minimax-m2.5</td><td>Mar 19, 2026</td><td><span class="bp b-ga">Day-0 (GTC)</span></td><td>High-volume production, coding, agents</td></tr>
+      <tr><td>Nemotron 3 Super</td><td>NVIDIA</td><td class="mono">nemotron-3-super</td><td>Mar 19, 2026</td><td><span class="bp b-ga">Day-0 (GTC)</span></td><td>Fast multilingual reasoning, agentic (120B hybrid)</td></tr>
+      <tr><td>Arcee Trinity Large Thinking</td><td>Arcee AI</td><td class="mono">trinity-large-thinking</td><td>Apr 2, 2026</td><td class="dim">No</td><td>Agentic, long-horizon, multi-turn tool calls</td></tr>
+      <tr><td>Opus 4.7</td><td>Anthropic</td><td class="mono">opus-4.7</td><td>Apr 17, 2026</td><td><span class="bp b-ga">Day-0</span></td><td>Advanced reasoning, agentic, coding</td></tr>
+      <tr><td>GPT Image 2.0</td><td>OpenAI</td><td class="mono">openai-gpt-image-2</td><td>Apr 23, 2026</td><td><span class="bp b-ga">Day-0</span></td><td>Image generation — /v1/images/generations</td></tr>
+      <tr><td>GPT-5.5</td><td>OpenAI</td><td class="mono">openai-gpt-5.5</td><td>Apr 28, 2026</td><td><span class="bp b-ga">Day-0</span></td><td>Autonomous multi-step agent tasks, coding</td></tr>
+    </tbody>
+  </table></div>
+  <div class="fn">Sources: <a href="https://digitalocean.slack.com/archives/C024FPVDB/p1777496218454709">#announcements Dedicated Inference GA Apr 2026</a> · <a href="https://digitalocean.slack.com/archives/C024FPVDB/p1773794004105119">#announcements Inference Hub Mar 2026</a> · <a href="https://docs.digitalocean.com/products/gradient-ai-platform/details/models/">Available Models Docs</a></div>
+</div>
+
+<!-- ═══ TAB 7 — ROADMAP ═══ -->
+<div id="tab-roadmap" class="tc">
+  <div class="ib wb">⚡ <strong>All roadmap items are internal signals from Slack and announcements.</strong> Confirm current status and timelines with Product/Capacity before sharing externally. Timelines shift frequently.</div>
+  <div class="tw"><table>
+    <thead><tr><th>GPU / Feature</th><th>Vendor</th><th>Config</th><th>VRAM</th><th>Region</th><th>Target Date</th><th>Status</th><th>Notes / Source</th></tr></thead>
+    <tbody>
+      <tr class="ur"><td class="gn up">B300 — Multi-node GA</td><td>NVIDIA</td><td>8× multi-node</td><td>2,304 GB HBM3e</td><td><span class="rt up">RIC1</span></td><td>~Mid-May 2026</td><td><span class="bp b-up">In Progress</span></td><td>Single-node GA ~3/31. Multi-node ~mid-May. Contract only + sold out. — <a href="https://digitalocean.slack.com/archives/C07TAQG5NQM/p1767972992736239" style="color:#5599dd">#gpu-program Jan 2026</a></td></tr>
+      <tr class="ur"><td class="gn up">MI355X — GA</td><td>AMD</td><td>8×</td><td>~2,304 GB (est.)</td><td><span class="rt up">MEM1</span></td><td>Q3 2026 (est.)</td><td><span class="bp b-up">Coming Soon</span></td><td>Liquid-cooled racks. "Next quarter, DO will deploy MI355X GPUs." — <a href="https://markets.financialcontent.com/stocks/article/bizwire-2026-2-19-digitalocean-elevates-its-agentic-inference-cloud-with-gpu-droplets-powered-by-amd-instinct-mi350x-gpus" style="color:#5599dd">Feb 2026 press release</a></td></tr>
+      <tr class="ur"><td class="gn up">B300 — On-Demand</td><td>NVIDIA</td><td>1× / 8×</td><td>288 GB / 2,304 GB</td><td><span class="rt up">RIC1</span></td><td>TBD</td><td><span class="bp b-td">TBD</span></td><td>Currently contract-only + sold out. On-demand when capacity expands.</td></tr>
+      <tr class="ur"><td class="gn up">MI350X — On-Demand</td><td>AMD</td><td>8×</td><td>2,304 GB</td><td><span class="rt up">RIC1</span> <span class="rt up">ATL1</span></td><td>TBD</td><td><span class="bp b-td">TBD</span></td><td>Currently contract-only. On-demand under discussion. — <a href="https://digitalocean.slack.com/archives/C07TAQG5NQM/p1767972992736239" style="color:#5599dd">#gpu-program Jan 2026</a></td></tr>
+      <tr class="ur"><td>GPU Contract Customer Experience</td><td>—</td><td>—</td><td>—</td><td>All</td><td>H1 2026</td><td><span class="bp b-up">In Progress</span></td><td>2026 priority: improve contract GPU customer experience as GPU footprint expands rapidly. Led by Jenni Griesmann. — <a href="https://digitalocean.slack.com/archives/C07TAQG5NQM/p1767972992736239" style="color:#5599dd">#gpu-program Jan 2026</a></td></tr>
+      <tr class="ur"><td>MXFP4/NVFP4 Precision Support</td><td>NVIDIA / AMD</td><td>—</td><td>—</td><td>—</td><td>TBD</td><td><span class="bp b-td">TBD</span></td><td>Requires B300 or MI350X. Targets FP8 quality gap for memory-intensive inference. — <a href="https://www.digitalocean.com/blog/llm-inference-tradeoffs" style="color:#5599dd">DO Blog Apr 2026</a></td></tr>
+      <tr class="ur"><td>AMS3 (Amsterdam) GPU</td><td>TBD</td><td>—</td><td>—</td><td><span class="rt up">AMS3</span></td><td>2026+</td><td><span class="bp b-td">TBD</span></td><td>DO product page mentions AMS3 as a current/upcoming GPU region. First Europe GPU location. GPU type TBD.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="fn">Sources: <a href="https://digitalocean.slack.com/archives/C07TAQG5NQM/p1767972992736239">#gpu-program Jan 2026</a> · <a href="https://digitalocean.slack.com/archives/C024FPVDB/p1773680938613259">#announcements RIC1 Mar 2026</a> · <a href="https://markets.financialcontent.com/stocks/article/bizwire-2026-2-19-digitalocean-elevates-its-agentic-inference-cloud-with-gpu-droplets-powered-by-amd-instinct-mi350x-gpus">MI355X announcement Feb 2026</a> · <a href="https://www.digitalocean.com/products/gradient/gpu-droplets">GPU Droplets product page (AMS3)</a></div>
+</div>
+
+<!-- ═══ TAB 8 — QUICK REFERENCE ═══ -->
+<div id="tab-quickref" class="tc">
+  <div class="qrg">
+    <div class="ib"><strong>💰 On-Demand Pricing (Hourly → Monthly)</strong><br><br>
+      RTX 4000 Ada 1× &nbsp;→&nbsp; <strong>$0.76/hr</strong> (~$547/mo)<br>
+      L40S / RTX 6000 Ada 1× &nbsp;→&nbsp; <strong>$1.57/hr</strong> (~$1,130/mo)<br>
+      MI300X 1× &nbsp;→&nbsp; <strong>$1.99/hr</strong> (~$1,433/mo)<br>
+      MI300X 8× &nbsp;→&nbsp; <strong>$15.92/hr</strong> (~$11,462/mo)<br>
+      H100 SXM5 1× &nbsp;→&nbsp; <strong>$3.39/hr</strong> (~$2,441/mo)<br>
+      H100 SXM5 8× &nbsp;→&nbsp; <strong>$23.92/hr</strong> (~$17,222/mo)<br>
+      H200 SXM5 1× &nbsp;→&nbsp; <strong>$3.44/hr</strong> (~$2,477/mo)<br>
+      H200 SXM5 8× &nbsp;→&nbsp; <strong>$27.52/hr</strong> (~$19,814/mo)<br>
+      MI325X 8× &nbsp;→&nbsp; Contact Sales<br>
+      MI350X 8× &nbsp;→&nbsp; Contact Sales<br>
+      B300 &nbsp;→&nbsp; Contact Sales</div>
+
+    <div class="ib"><strong>📝 12-Month Contract Pricing</strong><br><br>
+      H100 8× &nbsp;→&nbsp; <strong>$1.99/GPU/hr</strong> = $15.92/hr (~$11,462/mo) · <em>33% off OD</em><br>
+      MI300X 8× &nbsp;→&nbsp; <strong>$1.49/GPU/hr</strong> = $11.92/hr (~$8,582/mo) · <em>25% off OD</em><br>
+      MI325X 8× &nbsp;→&nbsp; <strong>$1.69/GPU/hr</strong> = $13.52/hr (~$9,734/mo)<br>
+      H200 8× &nbsp;→&nbsp; Contact Sales<br>
+      B300 &nbsp;→&nbsp; Contact Sales (~$5.65+/GPU/hr market rate)<br>
+      MI350X &nbsp;→&nbsp; Contact Sales<br><br>
+      All contracts via 12-month commitment through sales team.</div>
+
+    <div class="ib"><strong>⚡ Key Sales &amp; Solutions Facts</strong><br><br>
+      • H100/H200: largely sold out; on-demand fluctuates<br>
+      • B300: contract-only + sold out; single-node GA ~3/31/26<br>
+      • AMD GPUs use SR-IOV (VF) — intentional, not a bug<br>
+      • NVIDIA NOT available in European regions<br>
+      • AMS3 (Amsterdam) mentioned as upcoming GPU DC<br>
+      • Multi-node max: 64 nodes / ~512 GPUs<br>
+      • Spin-up: &lt;1 minute (on-demand)<br>
+      • SLA: 99.5%/month, 5-minute intervals<br>
+      • Dedicated Inference provisioning: ~10–20 min (DOKS + LBaaS + model load)</div>
+
+    <div class="ib"><strong>🔗 Key Links</strong><br><br>
+      <a href="https://docs.digitalocean.com/products/droplets/details/features/#gpu-droplets" style="color:#5599dd">GPU Droplet Features &amp; Specs</a><br>
+      <a href="https://docs.digitalocean.com/products/droplets/details/pricing/" style="color:#5599dd">GPU Droplet Pricing Docs</a><br>
+      <a href="https://www.digitalocean.com/pricing/gpu-droplets" style="color:#5599dd">GPU Pricing Page (public)</a><br>
+      <a href="https://docs.digitalocean.com/products/droplets/details/availability/" style="color:#5599dd">Region Availability Docs</a><br>
+      <a href="https://docs.digitalocean.com/products/gradient-ai-platform/details/models/" style="color:#5599dd">Available Inference Models</a><br>
+      <a href="https://docs.digitalocean.com/products/inference/details/pricing/" style="color:#5599dd">Inference Pricing Docs</a><br>
+      <a href="https://docs.digitalocean.com/products/inference-hub/" style="color:#5599dd">Inference Hub Docs</a><br>
+      <a href="https://docs.digitalocean.com/products/inference/how-to/use-dedicated-inference/" style="color:#5599dd">Dedicated Inference How-To</a><br>
+      <a href="https://www.digitalocean.com/sla/gpu-droplets" style="color:#5599dd">GPU Droplet SLA</a></div>
+
+    <div class="ib"><strong>🏗 Architecture Quick Facts</strong><br><br>
+      • NVIDIA intra-node: NVLink 900 GBps (4× NVSwitches H100/H200; 2× B300)<br>
+      • AMD intra-node: Infinity Fabric 896 GB/s (on-die)<br>
+      • Inter-node: RoCEv2, 3.2 Tbps (8×400G), 1 dedicated NIC per GPU<br>
+      • ib_write_bw: ~390 Gbps observed across all 400G fabrics<br>
+      • NCCL B300: ~838 GB/s · H200: ~482 GB/s<br>
+      • 1× NVIDIA: FabricManager svc VM isolates GPU from other customers<br>
+      • AMD: SR-IOV VF intentional; no RoCE performance penalty<br>
+      • B300: requires DOCA drivers (use gpu-h100x8-base image)</div>
+
+    <div class="ib wb"><strong>📌 Blank Fields — Engineering Follow-ups</strong><br><br>
+      • B300 vCPU, RAM, disk specs — confirm with engineering<br>
+      • MI350X vCPU, RAM — confirm with engineering<br>
+      • MI355X all specs (VRAM, vCPU, RAM) — TBD<br>
+      • L40S / RTX 6000 Ada — full region list<br>
+      • B300 exact hourly pricing — contact sales<br>
+      • MI350X / MI355X pricing — contact sales<br>
+      • MEM1 DC name/location — confirm with DC ops<br>
+      • AMS3 GPU types and timeline — confirm with product</div>
+  </div>
+  <div class="fn" style="margin-top:16px"><strong>Disclaimer:</strong> Compiled from internal Slack (#announcements, #gpu-droplet, #gpu-program, #solutions-team-public, #dedicated-inference-dev) and official docs as of May 4, 2026. Pricing from <a href="https://docs.digitalocean.com/products/droplets/details/pricing/">DO Pricing Docs</a> validated Apr 7, 2026. Roadmap items (⚡) are indicative and subject to change.</div>
+</div>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
